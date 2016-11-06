@@ -61,10 +61,12 @@ class SettingsViewController: UIViewController {
     @IBAction func rowingNotRunningChange(_ sender: UISwitch) {
         if sender.isOn {
             self.rowingNotRunningShow.text = "Rowing"
+            Utils.isRowingNotRunning = true
         }
         else
         {
             self.rowingNotRunningShow.text = "Running"
+            Utils.isRowingNotRunning = false
         }
     }
     

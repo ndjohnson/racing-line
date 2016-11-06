@@ -16,6 +16,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var settingsButtonImage: UIButton!
     
     @IBOutlet weak var coursePickerView: UIPickerView!
+    @IBOutlet weak var courseMap: MKMapView!
     
     var coursePicker:CoursePicker?
     
@@ -23,11 +24,22 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
-        self.uName.text = "not logged in"
+        if Utils.isLoggedIn
+        {
+            uName.text = "logged in as " + Utils.loggedInUser!
+        }
+        else
+        {
+            uName.text = "not logged in"
+        }
         
-        self.coursePicker = CoursePicker()
-        self.coursePickerView.delegate = self.coursePicker
-        self.coursePickerView.dataSource = self.coursePicker
+        coursePicker = CoursePicker()
+        coursePickerView.delegate = self.coursePicker
+        coursePickerView.dataSource = self.coursePicker
+        coursePicker?.courseMap = courseMap
+        courseMap.delegate = coursePicker
+        
+        getCourseList(Utils.loggedInUser)
     }
 
     override func didReceiveMemoryWarning() {
@@ -38,42 +50,61 @@ class ViewController: UIViewController {
     @IBAction func settingsButtonPress(_ sender: UIButton) {
     }
 
-    func getCourseList(_ uname: String?) {
-        if (Utils.serverName != nil) {
-            var rq = URLRequest(url: URL(string: "http://" + Utils.serverName! + "cgi-bin/readCourseList.php")!)
-            rq.httpMethod = "POST"
-            let postString = "uname=\(uname)&asJson=1"
-            rq.httpBody = postString.data(using: .utf8)
-            let task = URLSession.shared.dataTask(with: rq) {
-                data, response, error in guard let data = data, error == nil else { print ("error=\(error)"); return }
-                
-                if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
-                    print ("status return \(httpStatus.statusCode)")
-                    print ("response is \(response)")
-                }
-                
-                do {
-                    let str = String(data: data, encoding: .utf8)
-                    print("responseStr: \(str)")
-                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                    print("jsonObject = \(jsonObject)")
-                    let courseArray = jsonObject as! Array<Array<String>>
-                    self.coursePicker?.courseList = []
-                    for courseName in courseArray {
-                        self.coursePicker?.courseList.append(courseName[0])
-                        print(courseName[0])
-                        print(type(of: courseName[0]))
-                    }
-                }
-                catch let error as NSError {
-                    print("error = \(error)")
-                }
-                
-                DispatchQueue.main.async {self.coursePickerView.reloadAllComponents()}
-                print("called readCourseList.php")
-            }
-            task.resume()
+    func populatePicker(_ jsonObject: Any?)
+    {
+        let courseArray = jsonObject as! Array<Array<String>>
+        self.coursePicker?.courseList = []
+        for courseName in courseArray
+        {
+            self.coursePicker?.courseList.append(courseName[0])
+            print(courseName[0])
+            print(type(of: courseName[0]))
         }
+
+        DispatchQueue.main.async {self.coursePickerView.reloadAllComponents()}
+       
+    }
+    
+    func getCourseList(_ uname: String?)
+    {
+        Utils.post(to: "readCourseList.php", ssl: false, postString: "uname=\(uname)&asJson=1", onSuccess: populatePicker)
+    }
+    
+    @IBAction func mapMode(_ sender: UISegmentedControl)
+    {
+      let newType = sender.selectedSegmentIndex
+        
+      print ("new slider = \(newType)")
+        
+      switch(newType)
+      {
+        case 0:
+          courseMap.mapType = MKMapType.standard
+        case 1:
+          courseMap.mapType = MKMapType.satellite
+        case 2:
+          courseMap.mapType = MKMapType.hybrid
+        default: break
+      }
+    }
+    
+    @IBAction func mapScale(_ sender: UISegmentedControl)
+    {
+      let action = sender.selectedSegmentIndex
+      var region = courseMap.region
+        
+      switch action
+      {
+        case 0:
+          region.span.latitudeDelta /= 2.0
+          region.span.longitudeDelta /= 2.0
+        case 1:
+          region.span.latitudeDelta *= 2.0
+          region.span.longitudeDelta *= 2.0
+        default:
+          break
+      }
+      courseMap.setRegion(region, animated: true)
     }
     
     @IBAction func unwindToHomeScreen(unwindSegue: UIStoryboardSegue) {
@@ -84,6 +115,14 @@ class ViewController: UIViewController {
         print ("cancel Segue to home screen")
     }
 
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        if let newVC = segue.destination as? NavigationViewController
+        {
+            newVC.pass(coursePath: self.coursePicker?.cPath)
+        }
+    }
+    
     @IBAction func unwindAndSaveToHomeScreen(unwindSegue: UIStoryboardSegue) {
         
         if let settingsVC = unwindSegue.source as? SettingsViewController {
@@ -95,10 +134,71 @@ class ViewController: UIViewController {
     }
 }
 
-class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
+class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKMapViewDelegate {
 
     var courseList = [String]()
     var selectedCourseIndex:Int = 0
+    var courseMap:MKMapView?
+    var cPath:MKPolyline?
+    
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        if overlay is MKPolyline {
+            let polyLineRenderer = MKPolylineRenderer(overlay: overlay)
+            polyLineRenderer.strokeColor = UIColor.red
+            polyLineRenderer.lineWidth = 2
+            return polyLineRenderer
+        }
+        else
+        {
+            return MKOverlayRenderer(overlay: overlay)
+        }
+    }
+
+    func populateMap(_ jsonObject: Any?)
+    {
+        var courseDict = jsonObject as! [String:Any]
+        let courseName = courseDict["course_name"]
+        print("course name is \(courseName)")
+        
+        var minLat = Double(90.0)
+        var maxLat = Double(-90.0)
+        var minLng = Double(180.0)
+        var maxLng = Double(-180.0)
+        
+        let pathData = courseDict["pathData"]
+        print("pathData is \(pathData)")
+        var coursePath = [CLLocationCoordinate2D]()
+        for wp in pathData as! Array<Dictionary<String,Double>>
+        {
+            let lat = wp["lat"]
+            let lng = wp["lng"]
+            print("waypoint is \(lat), \(lng)")
+            coursePath.append(CLLocationCoordinate2D(latitude: lat!,longitude: lng!))
+            
+            if (lat! < minLat) { minLat = lat! }
+            if (lat! > maxLat) { maxLat = lat! }
+            if (lng! < minLng) { minLng = lng! }
+            if (lng! > maxLng) { maxLng = lng! }
+            
+        }
+
+        cPath = MKPolyline.init(coordinates: coursePath, count: coursePath.count)
+        
+        let coordSpan = MKCoordinateSpanMake(maxLat - minLat, maxLng - minLng)
+        let coordCentre = CLLocationCoordinate2DMake((maxLat + minLat)/2.0, (maxLng + minLng)/2.0)
+        let region = MKCoordinateRegionMake(coordCentre, coordSpan)
+        
+        DispatchQueue.main.async {
+            self.courseMap?.region = region
+            self.courseMap?.add(self.cPath!)
+        }
+
+    }
+
+    func getCourseData(_ course: String?)
+    {
+        Utils.post(to: "readCourseData.php", ssl: false, postString: "course_name=\(course!)", onSuccess: populateMap)
+    }
     
     func numberOfComponents(in: UIPickerView) -> Int {
         return 1
@@ -114,5 +214,6 @@ class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource {
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
         self.selectedCourseIndex = row
+        getCourseData(courseList[row])
     }
 }

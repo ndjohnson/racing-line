@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C36EAD881DCE0ACB00F0BB2B /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C36EAD871DCE0ACB00F0BB2B /* LoginViewController.swift */; };
 		C3837BA11DC53F7B00471B71 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3837BA01DC53F7B00471B71 /* AppDelegate.swift */; };
 		C3837BA31DC53F7B00471B71 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3837BA21DC53F7B00471B71 /* ViewController.swift */; };
 		C3837BA61DC53F7B00471B71 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C3837BA41DC53F7B00471B71 /* Main.storyboard */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C36EAD871DCE0ACB00F0BB2B /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		C3837B9D1DC53F7B00471B71 /* racing-line.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "racing-line.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3837BA01DC53F7B00471B71 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C3837BA21DC53F7B00471B71 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -64,6 +66,7 @@
 				C3837BB61DCD30EE00471B71 /* utils.swift */,
 				C3837BA21DC53F7B00471B71 /* ViewController.swift */,
 				C3837BA41DC53F7B00471B71 /* Main.storyboard */,
+				C36EAD871DCE0ACB00F0BB2B /* LoginViewController.swift */,
 				C3837BB41DC5508A00471B71 /* NavigationViewController.swift */,
 				C3837BB21DC54F6600471B71 /* SettingsViewController.swift */,
 				C3837BA71DC53F7B00471B71 /* Assets.xcassets */,
@@ -146,6 +149,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C36EAD881DCE0ACB00F0BB2B /* LoginViewController.swift in Sources */,
 				C3837BB71DCD30EE00471B71 /* utils.swift in Sources */,
 				C3837BB51DC5508A00471B71 /* NavigationViewController.swift in Sources */,
 				C3837BA31DC53F7B00471B71 /* ViewController.swift in Sources */,
@@ -314,6 +318,7 @@
 				C3837BB11DC53F7B00471B71 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
