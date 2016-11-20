@@ -18,6 +18,8 @@ class Utils {
     static var serverName: String?
     static var cameraHeight: Double = 100.0
     static var cameraPitch:Double = 45.0
+    static var distanceFilter = 10.0
+    static var desiredAccuracy = 5.0
     static var isRowingNotRunning = true
 
     static func checkLoginAtStartup ()
@@ -26,38 +28,95 @@ class Utils {
         
         if let loginDetails = userDefaults.dictionary(forKey: "loginDetails") as? [String:Any?]
         {
-            isLoggedIn = loginDetails["isLoggedIn"] as! Bool
-        
-            if isLoggedIn
+            print ("found login details")
+            
+            if let isLi = loginDetails["isLoggedIn"] as? Bool
             {
-                loggedInUser = loginDetails["uName"] as? String
-                loggedInPassword = loginDetails["pWord"] as? String
+                isLoggedIn = isLi
                 
-//                post(to: "appLogin.php", ssl: true, postString: "uname=\(uName)&passwd=\(pWord)", onSuccess: validateLogin)
+                if let li = loginDetails["uName"] as? String
+                {
+                    loggedInUser = li
+                    loggedInPassword = KeychainWrapper.standard.string(forKey: loggedInUser!)
+                }
             }
             else
             {
                 clearLoggedIn()
             }
         }
+        else
+        {
+            print ("login details not found")
+        }
+        
+        if let settings = userDefaults.dictionary(forKey: "settings") as? [String:Any?]
+        {
+            print ("settings found")
+            if let ch = settings["cameraHeight"] as? Double
+            {
+                cameraHeight = ch
+            }
+            if let cp = settings["cameraPitch"] as? Double
+            {
+                cameraPitch = cp
+            }
+            if let df = settings["distanceFilter"] as? Double
+            {
+                distanceFilter = df
+            }
+            if let da = settings["desiredAccuracy"] as? Double
+            {
+                desiredAccuracy = da
+            }
+            if let ir = settings["isRowingNotRunning"] as? Bool
+            {
+                isRowingNotRunning = ir
+            }
+        }
+        else
+        {
+            print("settings not found")
+        }
     }
 
     
     static func persistLogin (_ password: String?)
     {
+        let userDefaults = UserDefaults.standard
+        
         if isLoggedIn
         {
-            let userDefaults = UserDefaults.standard
-            
             var loginDetails = [String:Any]()
             
             loginDetails["isLoggedIn"] = isLoggedIn
             loginDetails["uName"] = loggedInUser!
-            loginDetails["pWord"] = password!
-            
             userDefaults.set(loginDetails, forKey: "loginDetails")
+
+            guard KeychainWrapper.standard.set(password!, forKey: loggedInUser!)
+            else
+            {
+                print ("password save failed")
+                return
+            }
         }
+    }
+    
+    static func persistSettings()
+    {
+        let userDefaults = UserDefaults.standard
         
+        var settings = [String:Any]()
+        
+        settings["cameraHeight"] = cameraHeight
+        settings["cameraPitch"] = cameraPitch
+        settings["distanceFilter"] = distanceFilter
+        settings["desiredAccuracy"] = desiredAccuracy
+        settings["isRowingNotRunning"] = isRowingNotRunning
+        
+        userDefaults.set(settings, forKey: "settings")
+        
+        print ("saved settings")
     }
     
     static func clearLoginDetailsIfNecessary ()
@@ -67,6 +126,10 @@ class Utils {
             let userDefaults = UserDefaults.standard
         
             userDefaults.set(nil, forKey: "loginDetails")
+            if let user = loggedInUser
+            {
+              KeychainWrapper.standard.set("", forKey: user)
+            }
         }
     }
     

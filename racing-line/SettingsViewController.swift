@@ -10,15 +10,19 @@ import UIKit
 
 class SettingsViewController: UIViewController {
 
-    @IBOutlet weak var uName: UILabel!
-    
     @IBOutlet weak var rowingNotRunningValue: UISwitch!
     
     @IBOutlet weak var rowingNotRunningShow: UILabel!
     
-    @IBOutlet weak var username: UITextField!
+    @IBOutlet weak var desiredAccuracy: UITextField!
+    @IBOutlet weak var cameraHeight: UITextField!
+    @IBOutlet weak var distanceFilter: UITextField!
+    @IBOutlet weak var cameraAngle: UITextField!
     
-    @IBOutlet weak var password: UITextField!
+    @IBOutlet weak var cancelButton: UIButton!
+    @IBOutlet weak var saveButton: UIButton!
+    
+    var isRowingNotRunning:Bool?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,8 +30,18 @@ class SettingsViewController: UIViewController {
         // Do any additional setup after loading the view.
         
         rowingNotRunningChange(rowingNotRunningValue)
+        cameraAngle.text = String(Utils.cameraPitch)
+        cameraHeight.text = String(Utils.cameraHeight)
+        distanceFilter.text = String(Utils.distanceFilter)
+        desiredAccuracy.text = String(Utils.desiredAccuracy)
         
-        self.uName.text = "not logged in"
+        cancelButton.layer.cornerRadius = 4
+        saveButton.layer.cornerRadius = 4
+        
+        saveButton.isEnabled = false
+        saveButton.alpha = 0.3
+        
+        isRowingNotRunning = Utils.isRowingNotRunning
     }
 
     override func didReceiveMemoryWarning() {
@@ -45,90 +59,37 @@ class SettingsViewController: UIViewController {
     }
     */
 
-    @IBAction func loginName(_ sender: UITextField) {
+    func doSave()
+    {
+        Utils.cameraPitch = Double(cameraAngle.text!)!
+        Utils.cameraHeight = Double(cameraHeight.text!)!
+        Utils.desiredAccuracy = Double(desiredAccuracy.text!)!
+        Utils.distanceFilter = Double(distanceFilter.text!)!
+        Utils.isRowingNotRunning = isRowingNotRunning!
         
-        sender.resignFirstResponder()
+        Utils.persistSettings()
     }
     
-    @IBAction func password(_ sender: UITextField) {
-    
-        sender.resignFirstResponder()
+    @IBAction func editedSomething(_ sender: UITextField)
+    {
+        saveButton.isEnabled = true
+        saveButton.alpha = 1.0
     }
     
-    @IBAction func passwordStart(_ sender: UITextField) {
-    }
-    
-    @IBAction func rowingNotRunningChange(_ sender: UISwitch) {
+    @IBAction func rowingNotRunningChange(_ sender: UISwitch)
+    {
+        saveButton.isEnabled = true
+        saveButton.alpha = 1.0
+        
         if sender.isOn {
             self.rowingNotRunningShow.text = "Rowing"
-            Utils.isRowingNotRunning = true
+            isRowingNotRunning = true
         }
         else
         {
             self.rowingNotRunningShow.text = "Running"
-            Utils.isRowingNotRunning = false
+            isRowingNotRunning = false
         }
     }
     
-    @IBAction func loginPressed(_ sender: UIButton) {
-        
-        if Utils.isLoggedIn {
-          Utils.clearLoggedIn()
-          self.uName.text = "not logged in"
-          sender.setTitle("Login", for: .normal)
-        }
-        else
-        {
-          if Utils.serverName != nil {
-            var rq = URLRequest(url: URL(string: "http://" + Utils.serverName! + "/cgi-bin/appLogin.php")!)
-            
-            rq.httpMethod = "POST"
-            let postString = "uname=\(self.username.text!)&passwd=\(self.password.text!)"
-            rq.httpBody = postString.data(using: .utf8)
-            let task = URLSession.shared.dataTask(with: rq) {
-                data, response, error in guard let data = data, error == nil else { print ("error=\(error)"); return }
-                
-                if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
-                    print ("status return \(httpStatus.statusCode)")
-                    print ("response is \(response)")
-                }
-                
-                do {
-                    let str = String(data: data, encoding: .utf8)
-                    print ("responseStr = \(str)")
-                    let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                    print ("jsonObject = \(jsonObject)")
-                    let responseDict = jsonObject as! [String:Any]
-                    let loginSucceeded = responseDict["loginSucceeded"] as! Bool
-                    let uName = responseDict["uname"]
-                    let rName = responseDict["realname"]
-                    let errMsg = responseDict["errMsg"]
-                    
-                    DispatchQueue.main.async {
-                      if loginSucceeded {
-                        self.uName.text = "Logged in as: \(uName!) (\(rName!))"
-                        Utils.setLoggedIn(uName as! String?)
-                        sender.setTitle("Logout", for: .normal)
-                      }
-                      else {
-                        Utils.clearLoggedIn()
-                        self.uName.text = "not logged in"
-                      }
-                    }
-                    
-                    if errMsg != nil {
-                        print (errMsg!)
-                    }
-                }
-                catch let error as NSError {
-                    print ("error reading login response: \(error)")
-                }
-            }
-            task.resume()
-          }
-        }
-        username.resignFirstResponder()
-        password.resignFirstResponder()
-        
-    }
 }

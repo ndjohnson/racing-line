@@ -17,7 +17,8 @@ class LoginViewController: UIViewController {
     @IBOutlet weak var username: UITextField!
     @IBOutlet weak var password: UITextField!
     @IBOutlet weak var advisoryText: UILabel!
-    @IBOutlet weak var selectCourseButton: UIButton!
+    
+    var accountName: String?
     
     var isKeepLoggedIn = false
     
@@ -26,24 +27,32 @@ class LoginViewController: UIViewController {
 
         // Do any additional setup after loading the view.
         
-        selectCourseButton.isEnabled = false
-
+        loginMeInButton.layer.cornerRadius = 4
+        
         if Utils.isLoggedIn
         {
             Utils.post(to: "appLogin.php", ssl: true, postString: "uname=\(Utils.loggedInUser!)&passwd=\(Utils.loggedInPassword!)", onSuccess: validateLogin)
 //            advisoryText.text = "logged in as " + Utils.loggedInUser!
             
-              username.text = Utils.loggedInUser!
-              password.text = Utils.loggedInPassword!
+            username.text = Utils.loggedInUser!
+            password.text = Utils.loggedInPassword!
 //            loginMeInButton.setTitle("Logout", for: .normal)
             keepLoggedInButton.setImage(#imageLiteral(resourceName: "greyButtonChecked-1"), for: .normal)
-            isKeepLoggedIn = true
+                isKeepLoggedIn = true
         }
         else
         {
+            loginMeInButton.setTitle("Login", for: .normal)
             advisoryText.text = ""
+            let pwItem = KeychainWrapper.standard.string(forKey: username.text!)
+            
+            if let pw = pwItem
+            {
+              password.text = pw
+            }
         }
     }
+
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -72,7 +81,6 @@ class LoginViewController: UIViewController {
         {
             if loginSucceeded
             {
-                self.selectCourseButton.isEnabled = true
                 Utils.setLoggedIn(uName as! String?)
                 self.advisoryText.text = "login succeeded"
                 self.loginMeInButton.setTitle("Logout", for: .normal)
@@ -80,6 +88,7 @@ class LoginViewController: UIViewController {
                 {
                     Utils.persistLogin(self.password.text)
                 }
+                self.performSegue(withIdentifier: "autoLoginSegue", sender: self)
             }
             else
             {
@@ -87,7 +96,6 @@ class LoginViewController: UIViewController {
                 self.advisoryText.text = "login failed"
                 self.keepLoggedInButton.setImage(#imageLiteral(resourceName: "greyButtonUnchecked"), for: .normal)
                 Utils.clearLoggedIn()
-                self.selectCourseButton.isEnabled = false
 
             }
         }
@@ -102,7 +110,6 @@ class LoginViewController: UIViewController {
             username.text = nil
             password.text = nil
             advisoryText.text = "logged out"
-            self.selectCourseButton.isEnabled = false
         }
         else
         {
@@ -110,6 +117,19 @@ class LoginViewController: UIViewController {
         }
     }
     
+    @IBAction func showPassword(_ sender: UIButton)
+    {
+        if sender.isSelected
+        {
+            sender.isSelected = false
+            password.isSecureTextEntry = true
+        }
+        else
+        {
+            sender.isSelected = true
+            password.isSecureTextEntry = false
+        }
+    }
     
     @IBAction func keepLoggedIn(_ sender: UIButton) {
         
@@ -125,6 +145,22 @@ class LoginViewController: UIViewController {
             Utils.clearLoginOnExit = false
         }
     }
-    @IBAction func selectCourse(_ sender: UIButton) {
+    @IBAction func selectCourse(_ sender: UIButton)
+    {
     }
+    
+    @IBAction func usernameUpdate(_ sender: UITextField)
+    {
+        if let candidatePassword = KeychainWrapper.standard.string(forKey: sender.text!)
+        {
+            password.text = candidatePassword
+        }
+    }
+    
+    @IBAction func unwindToLoginScreen(unwindSegue: UIStoryboardSegue)
+    {
+        Utils.clearLoggedIn()
+        print ("logout Segue to home screen")
+    }
+    
 }

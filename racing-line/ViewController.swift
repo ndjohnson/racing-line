@@ -18,6 +18,13 @@ class ViewController: UIViewController {
     @IBOutlet weak var coursePickerView: UIPickerView!
     @IBOutlet weak var courseMap: MKMapView!
     
+    @IBOutlet weak var scaleControl: UISegmentedControl!
+
+    @IBOutlet weak var mapModeControl: UISegmentedControl!
+    
+    @IBOutlet weak var selectCourseButton: UIButton!
+    @IBOutlet weak var backButton: UIButton!
+    
     var coursePicker:CoursePicker?
     
     override func viewDidLoad() {
@@ -32,6 +39,9 @@ class ViewController: UIViewController {
         {
             uName.text = "not logged in"
         }
+        scaleControl.layer.cornerRadius = 4
+        mapModeControl.layer.cornerRadius = 4
+        selectCourseButton.layer.cornerRadius = 4
         
         coursePicker = CoursePicker()
         coursePickerView.delegate = self.coursePicker
@@ -61,13 +71,16 @@ class ViewController: UIViewController {
             print(type(of: courseName[0]))
         }
 
-        DispatchQueue.main.async {self.coursePickerView.reloadAllComponents()}
-       
+        DispatchQueue.main.async
+        {
+            self.coursePickerView.reloadAllComponents()
+            self.coursePicker?.loadFirstCourse()
+        }
     }
     
     func getCourseList(_ uname: String?)
     {
-        Utils.post(to: "readCourseList.php", ssl: false, postString: "uname=\(uname)&asJson=1", onSuccess: populatePicker)
+        Utils.post(to: "readCourseList.php", ssl: false, postString: "loginName=\(uname!)&asJson=1", onSuccess: populatePicker)
     }
     
     @IBAction func mapMode(_ sender: UISegmentedControl)
@@ -109,10 +122,8 @@ class ViewController: UIViewController {
     
     @IBAction func unwindToHomeScreen(unwindSegue: UIStoryboardSegue) {
         
-        if let settingsVC = unwindSegue.source as? SettingsViewController {
-            self.uName.text = settingsVC.uName.text
-        }
-        print ("cancel Segue to home screen")
+        UIApplication.shared.isIdleTimerDisabled = false
+        print ("Segue to home screen: enabling idle timer")
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
@@ -125,13 +136,25 @@ class ViewController: UIViewController {
     
     @IBAction func unwindAndSaveToHomeScreen(unwindSegue: UIStoryboardSegue) {
         
-        if let settingsVC = unwindSegue.source as? SettingsViewController {
-            self.uName.text = settingsVC.uName.text
-            
-            getCourseList(Utils.loggedInUser)
+        if let sourceVC = unwindSegue.source as? SettingsViewController
+        {
+            sourceVC.doSave()
         }
+        
+        getCourseList(Utils.loggedInUser)
         print ("save Segue to home screen")
     }
+    
+    @IBAction func unwindAndCancelToHomeScreen(unwindSegue: UIStoryboardSegue) {
+        
+        getCourseList(Utils.loggedInUser)
+        print ("cancel Segue to home screen")
+    }
+    
+    @IBAction func backToLogin(_ sender: UIButton)
+    {
+    }
+    
 }
 
 class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKMapViewDelegate {
@@ -190,11 +213,21 @@ class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKM
         
         DispatchQueue.main.async {
             self.courseMap?.region = region
+            if let overlays = self.courseMap?.overlays
+            {
+              self.courseMap?.removeOverlays(overlays)
+            }
             self.courseMap?.add(self.cPath!)
         }
 
     }
 
+    func loadFirstCourse()
+    {
+        let firstCourse = courseList[0]
+        getCourseData(firstCourse)
+    }
+    
     func getCourseData(_ course: String?)
     {
         Utils.post(to: "readCourseData.php", ssl: false, postString: "course_name=\(course!)", onSuccess: populateMap)

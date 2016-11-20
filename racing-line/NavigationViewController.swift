@@ -18,9 +18,17 @@ class NavigationViewController: UIViewController, CLLocationManagerDelegate, MKM
     var headingOffset: CLHeading!
     var cPath: MKPolyline?
     
+    @IBOutlet weak var stopButton: UIButton!
+    @IBOutlet weak var mapModeButton: UISegmentedControl!
+    @IBOutlet weak var mapScaleButton: UISegmentedControl!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        stopButton.layer.cornerRadius = 4
+        mapModeButton.layer.cornerRadius = 4
+        mapScaleButton.layer.cornerRadius = 4
+        
         // Do any additional setup after loading the view.
         let authStatus = CLLocationManager.authorizationStatus()
         
@@ -45,6 +53,10 @@ class NavigationViewController: UIViewController, CLLocationManagerDelegate, MKM
         followMeCamera = MKMapCamera()
         followMeCamera.altitude = Utils.cameraHeight
         followMeCamera.pitch = CGFloat(Utils.cameraPitch)
+        
+        UIApplication.shared.isIdleTimerDisabled = true
+        print ("disabling idle timer in navigationVC.viewDidLoad()")
+
 
     }
     
@@ -66,8 +78,8 @@ class NavigationViewController: UIViewController, CLLocationManagerDelegate, MKM
         if status == .authorizedAlways || status == .authorizedWhenInUse {
             if CLLocationManager.locationServicesEnabled() {
                 print ("location services enabled - huzzah!")
-                self.locationManager.desiredAccuracy = 5.0
-                self.locationManager.distanceFilter = 10.0
+                self.locationManager.desiredAccuracy = Utils.desiredAccuracy
+                self.locationManager.distanceFilter = Utils.distanceFilter
                 self.locationManager.startUpdatingLocation()
             }
             else {
