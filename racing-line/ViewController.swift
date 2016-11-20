@@ -25,6 +25,8 @@ class ViewController: UIViewController {
     @IBOutlet weak var selectCourseButton: UIButton!
     @IBOutlet weak var backButton: UIButton!
     
+    @IBOutlet weak var retrievingCourses: UIActivityIndicatorView!
+    
     var coursePicker:CoursePicker?
     
     override func viewDidLoad() {
@@ -47,6 +49,8 @@ class ViewController: UIViewController {
         coursePickerView.delegate = self.coursePicker
         coursePickerView.dataSource = self.coursePicker
         coursePicker?.courseMap = courseMap
+        coursePicker?.activityIndicator = retrievingCourses
+        
         courseMap.delegate = coursePicker
         
         getCourseList(Utils.loggedInUser)
@@ -80,7 +84,7 @@ class ViewController: UIViewController {
     
     func getCourseList(_ uname: String?)
     {
-        Utils.post(to: "readCourseList.php", ssl: false, postString: "loginName=\(uname!)&asJson=1", onSuccess: populatePicker)
+        Utils.post(to: "readCourseList.php", ssl: false, postString: "loginName=\(uname!)&asJson=1", activityIndicator: retrievingCourses, onSuccess: populatePicker)
     }
     
     @IBAction func mapMode(_ sender: UISegmentedControl)
@@ -151,10 +155,11 @@ class ViewController: UIViewController {
         print ("cancel Segue to home screen")
     }
     
-    @IBAction func backToLogin(_ sender: UIButton)
+    @IBAction func swipeToNavigation(_ sender: UISwipeGestureRecognizer)
     {
+        performSegue(withIdentifier: "segueToNavigation", sender: self)
+
     }
-    
 }
 
 class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKMapViewDelegate {
@@ -162,6 +167,7 @@ class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKM
     var courseList = [String]()
     var selectedCourseIndex:Int = 0
     var courseMap:MKMapView?
+    var activityIndicator:UIActivityIndicatorView?
     var cPath:MKPolyline?
     
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -230,7 +236,7 @@ class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKM
     
     func getCourseData(_ course: String?)
     {
-        Utils.post(to: "readCourseData.php", ssl: false, postString: "course_name=\(course!)", onSuccess: populateMap)
+        Utils.post(to: "readCourseData.php", ssl: false, postString: "course_name=\(course!)", activityIndicator: activityIndicator, onSuccess: populateMap)
     }
     
     func numberOfComponents(in: UIPickerView) -> Int {

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class LoggedInViewController: UIViewController {
+class LoggedInViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @IBOutlet weak var advisoryText: UILabel!
     
@@ -31,6 +31,9 @@ class LoggedInViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
 
 
     // MARK: - Navigation
@@ -41,6 +44,21 @@ class LoggedInViewController: UIViewController {
         // Pass the selected object to the new view controller.
     }
 
+    @IBAction func swiped(_ sender: UISwipeGestureRecognizer)
+    {
+        performSegue(withIdentifier: "loggedInToCourseViewSegue", sender: self)
+    }
+    
+    @IBAction func preSwipePan(_ sender: UIPanGestureRecognizer)
+    {
+        let translation = sender.translation(in: self.view)
+        if let view = sender.view {
+            view.center = CGPoint(x:view.center.x + translation.x, y:view.center.y + translation.y)
+        }
+        sender.setTranslation(CGPoint.zero, in: self.view)
+        
+    }
+    
     @IBAction func logout(_ sender: UIButton)
     {
         Utils.clearLoggedIn()

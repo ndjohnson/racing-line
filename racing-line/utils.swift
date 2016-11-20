@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class Utils {
 
@@ -21,7 +22,21 @@ class Utils {
     static var distanceFilter = 10.0
     static var desiredAccuracy = 5.0
     static var isRowingNotRunning = true
+    static var isProductionNotTest = true
 
+    static func setProductionMode(_ isProdNotTest:Bool = true)
+    {
+        isProductionNotTest = isProdNotTest
+        initServerName()
+        post(to: "appLogin.php", ssl: true, postString: "uname=\(loggedInUser!)&passwd=\(loggedInPassword!)", onSuccess: validateLogin)
+        
+    }
+    
+    static func setTestMode()
+    {
+        setProductionMode(false)
+    }
+    
     static func checkLoginAtStartup ()
     {
         let userDefaults = UserDefaults.standard
@@ -49,7 +64,7 @@ class Utils {
         {
             print ("login details not found")
         }
-        
+
         if let settings = userDefaults.dictionary(forKey: "settings") as? [String:Any?]
         {
             print ("settings found")
@@ -72,6 +87,10 @@ class Utils {
             if let ir = settings["isRowingNotRunning"] as? Bool
             {
                 isRowingNotRunning = ir
+            }
+            if let ip = settings["isProductionNotTest"] as? Bool
+            {
+                isProductionNotTest = ip
             }
         }
         else
@@ -113,6 +132,7 @@ class Utils {
         settings["distanceFilter"] = distanceFilter
         settings["desiredAccuracy"] = desiredAccuracy
         settings["isRowingNotRunning"] = isRowingNotRunning
+        settings["isProductionNotTest"] = isProductionNotTest
         
         userDefaults.set(settings, forKey: "settings")
         
@@ -163,14 +183,15 @@ class Utils {
     
     static func initServerName() {
         if let infoPlist = Bundle.main.infoDictionary,
-            let envDict = infoPlist["LSEnvironment"] as? Dictionary<String, String> {
-            serverName = envDict["ProductionServer"]
-            allowHttps = true
+            let envDict = infoPlist["LSEnvironment"] as? Dictionary<String, String>
+        {
+            serverName = isProductionNotTest ? envDict["ProductionServer"] : envDict["TestServer"]
+            allowHttps = isProductionNotTest
             
             if serverName == nil {
                 print("couldn't find server name")
             }else{
-                print("server name is \(serverName)")
+                print("server name is \(serverName!)")
             }
         }
         else{
@@ -178,7 +199,7 @@ class Utils {
         }
     }
     
-    static func post(to: String?, ssl: Bool, postString: String?, onSuccess: @escaping (_ jsonObject: Any?) -> Void)
+    static func post(to: String?, ssl: Bool, postString: String?, activityIndicator: UIActivityIndicatorView? = nil, onSuccess: @escaping (_ jsonObject: Any?) -> Void)
     {
         let protocolStr = (ssl && allowHttps) ? "https://" : "http://"
         var rq = URLRequest(url: URL(string: protocolStr + Utils.serverName! + "cgi-bin/" + to!)!)
@@ -187,10 +208,25 @@ class Utils {
         
         print ("rq.Data is \(rq.allHTTPHeaderFields),")
         
+        if activityIndicator != nil
+        {
+            DispatchQueue.main.async{activityIndicator?.startAnimating()}
+        }
+        
         let task = URLSession.shared.dataTask(with: rq)
         {
         data, response, error in
-            guard let data = data, error == nil else { print ("error=\(error)"); return }
+
+            if activityIndicator != nil
+            {
+                DispatchQueue.main.async{activityIndicator?.stopAnimating()}
+            }
+            
+            guard let data = data, error == nil else
+            {
+                print ("error=\(error)")
+                return
+            }
                 
             if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200
             {

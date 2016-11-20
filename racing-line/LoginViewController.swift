@@ -18,6 +18,8 @@ class LoginViewController: UIViewController {
     @IBOutlet weak var password: UITextField!
     @IBOutlet weak var advisoryText: UILabel!
     
+    @IBOutlet weak var loggingIn: UIActivityIndicatorView!
+    
     var accountName: String?
     
     var isKeepLoggedIn = false
@@ -31,14 +33,12 @@ class LoginViewController: UIViewController {
         
         if Utils.isLoggedIn
         {
-            Utils.post(to: "appLogin.php", ssl: true, postString: "uname=\(Utils.loggedInUser!)&passwd=\(Utils.loggedInPassword!)", onSuccess: validateLogin)
-//            advisoryText.text = "logged in as " + Utils.loggedInUser!
+            Utils.post(to: "appLogin.php", ssl: true, postString: "uname=\(Utils.loggedInUser!)&passwd=\(Utils.loggedInPassword!)", activityIndicator: loggingIn, onSuccess: validateLogin)
             
             username.text = Utils.loggedInUser!
             password.text = Utils.loggedInPassword!
-//            loginMeInButton.setTitle("Logout", for: .normal)
             keepLoggedInButton.setImage(#imageLiteral(resourceName: "greyButtonChecked-1"), for: .normal)
-                isKeepLoggedIn = true
+            isKeepLoggedIn = true
         }
         else
         {
@@ -113,7 +113,7 @@ class LoginViewController: UIViewController {
         }
         else
         {
-            Utils.post(to: "appLogin.php", ssl: true, postString: "uname=\(username.text!)&passwd=\(password.text!)", onSuccess: validateLogin)
+            Utils.post(to: "appLogin.php", ssl: true, postString: "uname=\(username.text!)&passwd=\(password.text!)", activityIndicator: loggingIn, onSuccess: validateLogin)
         }
     }
     

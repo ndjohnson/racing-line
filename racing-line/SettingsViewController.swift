@@ -13,6 +13,7 @@ class SettingsViewController: UIViewController {
     @IBOutlet weak var rowingNotRunningValue: UISwitch!
     
     @IBOutlet weak var rowingNotRunningShow: UILabel!
+    @IBOutlet weak var productionNotTest: UISwitch!
     
     @IBOutlet weak var desiredAccuracy: UITextField!
     @IBOutlet weak var cameraHeight: UITextField!
@@ -21,6 +22,8 @@ class SettingsViewController: UIViewController {
     
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var saveButton: UIButton!
+    
+    @IBOutlet weak var racingLineServer: UILabel!
     
     var isRowingNotRunning:Bool?
     
@@ -34,6 +37,7 @@ class SettingsViewController: UIViewController {
         cameraHeight.text = String(Utils.cameraHeight)
         distanceFilter.text = String(Utils.distanceFilter)
         desiredAccuracy.text = String(Utils.desiredAccuracy)
+        racingLineServer.text = Utils.serverName
         
         cancelButton.layer.cornerRadius = 4
         saveButton.layer.cornerRadius = 4
@@ -92,4 +96,16 @@ class SettingsViewController: UIViewController {
         }
     }
     
+    @IBAction func productionNotTestChange(_ sender: UISwitch)
+    {
+        if sender.isOn
+        {
+            Utils.setProductionMode()
+        }
+        else
+        {
+            Utils.setTestMode()
+        }
+        racingLineServer.text = Utils.serverName
+    }
 }

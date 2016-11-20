@@ -48,6 +48,7 @@ class NavigationViewController: UIViewController, CLLocationManagerDelegate, MKM
         }
         
         followMeMap.delegate = self
+        followMeMap.mapType = .hybrid
         followMeMap.showsUserLocation = true
         followMeMap.add(cPath!)
         followMeCamera = MKMapCamera()

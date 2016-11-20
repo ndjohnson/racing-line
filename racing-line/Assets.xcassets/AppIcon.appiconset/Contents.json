@@ -33,7 +33,7 @@
     {
       "size" : "60x60",
       "idiom" : "iphone",
-      "filename" : "racing-line-logo.png",
+      "filename" : "racing-line-logo-120px.png",
       "scale" : "2x"
     },
     {
@@ -77,13 +77,15 @@
       "scale" : "1x"
     },
     {
-      "idiom" : "ipad",
       "size" : "76x76",
+      "idiom" : "ipad",
+      "filename" : "racing-line-logo-152px.png",
       "scale" : "2x"
     },
     {
-      "idiom" : "ipad",
       "size" : "83.5x83.5",
+      "idiom" : "ipad",
+      "filename" : "racing-line-logo-167px.png",
       "scale" : "2x"
     }
   ],
