@@ -160,6 +160,9 @@ class ViewController: UIViewController {
         performSegue(withIdentifier: "segueToNavigation", sender: self)
 
     }
+    @IBAction func swipeToLogin(_ sender: UISwipeGestureRecognizer)
+    {
+    }
 }
 
 class CoursePicker : NSObject, UIPickerViewDelegate, UIPickerViewDataSource, MKMapViewDelegate {

@@ -160,7 +160,14 @@ class LoginViewController: UIViewController {
     @IBAction func unwindToLoginScreen(unwindSegue: UIStoryboardSegue)
     {
         Utils.clearLoggedIn()
+        loginMeInButton.setTitle("Login", for: .normal)
+        advisoryText.text = ""
         print ("logout Segue to home screen")
     }
     
+    @IBAction func swipeToLogin(_ sender: UISwipeGestureRecognizer)
+    {
+        Utils.post(to: "appLogin.php", ssl: true, postString: "uname=\(username.text!)&passwd=\(password.text!)", activityIndicator: loggingIn, onSuccess: validateLogin)
+        
+    }
 }

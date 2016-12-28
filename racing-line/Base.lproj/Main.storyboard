@@ -116,8 +116,12 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="portrait-background" translatesAutoresizingMaskIntoConstraints="NO" id="mIj-eU-Eqp">
+                            <imageView contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="portrait-background" translatesAutoresizingMaskIntoConstraints="NO" id="mIj-eU-Eqp">
                                 <rect key="frame" x="16" y="28" width="343" height="631"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="0ez-Es-Yb1" appends="YES" id="01t-2A-OHx"/>
+                                </connections>
                             </imageView>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" translatesAutoresizingMaskIntoConstraints="NO" id="B3d-F9-mD0">
                                 <rect key="frame" x="113" y="32" width="149" height="159"/>
@@ -231,6 +235,11 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="1dX-7m-z7g" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <swipeGestureRecognizer direction="left" id="0ez-Es-Yb1">
+                    <connections>
+                        <action selector="swipeToLogin:" destination="aka-u8-iEq" id="1Pp-cZ-FbF"/>
+                    </connections>
+                </swipeGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="-613.04347826086962" y="138.58695652173915"/>
         </scene>
@@ -248,6 +257,7 @@
                         <subviews>
                             <pickerView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hLF-Bh-0e4">
                                 <rect key="frame" x="16" y="451" width="343" height="216"/>
+                                <gestureRecognizers/>
                             </pickerView>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="uC3-2Q-w1H">
                                 <rect key="frame" x="16" y="73" width="343" height="332"/>
@@ -362,6 +372,7 @@
                         </constraints>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="Tuu-Ft-5kU" appends="YES" id="aKU-Ht-xYi"/>
+                            <outletCollection property="gestureRecognizers" destination="ZaX-eC-PtT" appends="YES" id="Nsl-Nd-Ptg"/>
                         </connections>
                     </view>
                     <connections>
@@ -381,6 +392,11 @@
                 <swipeGestureRecognizer direction="left" id="Tuu-Ft-5kU">
                     <connections>
                         <action selector="swipeToNavigation:" destination="BYZ-38-t0r" id="exh-Gr-65U"/>
+                    </connections>
+                </swipeGestureRecognizer>
+                <swipeGestureRecognizer direction="right" id="ZaX-eC-PtT">
+                    <connections>
+                        <segue destination="9Jy-wa-rr4" kind="unwind" unwindAction="unwindToLoginScreenWithUnwindSegue:" id="lem-cs-gpB"/>
                     </connections>
                 </swipeGestureRecognizer>
             </objects>

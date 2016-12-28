@@ -23,6 +23,8 @@ class Utils {
     static var desiredAccuracy = 5.0
     static var isRowingNotRunning = true
     static var isProductionNotTest = true
+    static var panStartCoord:CGPoint = CGPoint.zero
+    
 
     static func setProductionMode(_ isProdNotTest:Bool = true)
     {
@@ -251,5 +253,28 @@ class Utils {
         task.resume()
     }
     
-    
+    static func pan(_ sender: UIPanGestureRecognizer, parentView:UIView)
+    {
+        if sender.state == .began
+        {
+            
+        }
+        let translation = sender.translation(in: parentView)
+        if let view = sender.view
+        {
+            if sender.state == .began
+            {
+                panStartCoord = view.center
+            }
+            if sender.state == .ended
+            {
+                view.center = panStartCoord
+            }
+            else
+            {
+                view.center = CGPoint(x:view.center.x + translation.x, y:view.center.y + translation.y)
+            }
+        }
+        sender.setTranslation(CGPoint.zero, in: parentView)
+    }
 }
